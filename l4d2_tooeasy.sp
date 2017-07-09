@@ -66,7 +66,7 @@ static void MakeItHard() {
         cvDifficulty.SetString(ADVANCED);
 }
 
-public void Event_PlayerActivate(Event event, const char[] name, bool dont_broadcast) {
+public void Event_PlayerActivate(Event event, const char[] name, bool dontBroadcast) {
         int player = GetClientOfUserId(event.GetInt("userid"));
 
         // Print a helpful message if the difficulty was forcibly changed at the beginning of the map.
@@ -74,7 +74,7 @@ public void Event_PlayerActivate(Event event, const char[] name, bool dont_broad
                 PrintToChat(player, "[Too Easy] This is an advanced and expert-only server. The difficulty has been changed to advanced.");
 }
 
-public void OnDifficultyChange(ConVar convar, char[] old_value, char[] new_value) {
+public void OnDifficultyChange(ConVar convar, char[] oldValue, char[] newValue) {
         // Check if any human players are on the server which suggests the difficulty was voted down.
         if (AnyHumanPlayers() && IsTooEasy()) {
                 MakeItHard();
