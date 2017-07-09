@@ -1,3 +1,8 @@
+/*
+	Thanks go to coleo for his gracious help and endless patience while helping me learn 
+	the ins and outs of SourceMod.
+*/
+
 #include <sourcemod>
 
 #define EASY "Easy"
@@ -7,11 +12,11 @@
 
 public Plugin myinfo =
 {
-        name = "[L4D2] Too Easy",
-        author = "Distemper",
-        description = "Makes sure people are playing the official maps at harder difficulties.",
-        version = "1.0",
-        url = "https://github.com/nuviktor/sm-l4d2-tooeasy"
+	name = "[L4D2] Too Easy",
+	author = "Distemper",
+	description = "Makes sure people are playing the official maps at harder difficulties.",
+	version = "1.0",
+	url = "https://github.com/nuviktor/sm-l4d2-tooeasy"
 };
 
 ConVar cvDifficulty;
@@ -19,83 +24,82 @@ ConVar cvGamemode;
 
 bool wasTooEasy;
 
-static bool IsOfficialMap()
-{
-        char currentMap[32];
-        char map[6];
+static bool IsOfficialMap() {
+	char currentMap[32];
+	char map[6];
 
-        GetCurrentMap(currentMap, sizeof(currentMap));
+	GetCurrentMap(currentMap, sizeof(currentMap));
 
-        for (int i = 1; i <= 13; i++) {
-                Format(map, sizeof(map), "c%im", i);
-                if (StrContains(currentMap, map, true) == 0)
-                        return true;
-        }
+	for (int i = 1; i <= 13; i++) {
+		Format(map, sizeof(map), "c%im", i);
+		if (StrContains(currentMap, map, true) == 0)
+			return true;
+	}
 
-        return false;
+	return false;
 }
 
 static bool IsCoop() {
-        char gamemode[16];
+	char gamemode[16];
 
-        cvGamemode.GetString(gamemode, sizeof(gamemode));
+	cvGamemode.GetString(gamemode, sizeof(gamemode));
 
-        return StrEqual(gamemode, "coop");
+	return StrEqual(gamemode, "coop");
 }
 
 static bool IsTooEasy() {
-        bool isEasy;
-        char difficulty[16];
+	bool isEasy;
+	char difficulty[16];
 
-        cvDifficulty.GetString(difficulty, sizeof(difficulty));
-        isEasy = StrEqual(difficulty, NORMAL) || StrEqual(difficulty, EASY);
+	cvDifficulty.GetString(difficulty, sizeof(difficulty));
+	isEasy = StrEqual(difficulty, NORMAL) || StrEqual(difficulty, EASY);
 
-        return (IsCoop() && IsOfficialMap() && isEasy);
+	return (IsCoop() && IsOfficialMap() && isEasy);
 }
 
 static bool AnyHumanPlayers() {
-        for (int i = 1; i <= MaxClients; i++)
-                if (IsClientInGame(i) && (! IsFakeClient(i)))
-                        return true;
+	for (int i = 1; i <= MaxClients; i++)
+		if (IsClientInGame(i) && (! IsFakeClient(i)))
+			return true;
 
-        return false;
+	return false;
 }
 
 static void MakeItHard() {
-        PrintToServer("[Too Easy] Setting difficulty to advanced");
-        cvDifficulty.SetString(ADVANCED);
+	PrintToServer("[Too Easy] Setting difficulty to advanced");
+	cvDifficulty.SetString(ADVANCED);
 }
 
 public void Event_PlayerActivate(Event event, const char[] name, bool dontBroadcast) {
-        int player = GetClientOfUserId(event.GetInt("userid"));
+	int player = GetClientOfUserId(event.GetInt("userid"));
 
-        // Print a helpful message if the difficulty was forcibly changed at the beginning of the map.
-        if (wasTooEasy)
-                PrintToChat(player, "[Too Easy] This is an advanced and expert-only server. The difficulty has been changed to advanced.");
+	// Print a helpful message if the difficulty was forcibly changed at the beginning of the map.
+	if (wasTooEasy)
+		PrintToChat(player, "[Too Easy] This is an advanced and expert-only server. The difficulty has been changed to advanced.");
 }
 
 public void OnDifficultyChange(ConVar convar, char[] oldValue, char[] newValue) {
-        // Check if any human players are on the server which suggests the difficulty was voted down.
-        if (AnyHumanPlayers() && IsTooEasy()) {
-                MakeItHard();
-                PrintToChatAll("[Too Easy] This is an advanced and expert-only server. The difficulty has been changed back to advanced.");
-        }
+	// Check if any human players are on the server which suggests the difficulty was voted down.
+	if (AnyHumanPlayers() && IsTooEasy()) {
+		MakeItHard();
+		PrintToChatAll("[Too Easy] This is an advanced and expert-only server. The difficulty has been changed back to advanced.");
+	}
 }
 
 public void OnPluginStart() {
-        cvDifficulty = FindConVar("z_difficulty");
-        cvGamemode = FindConVar("mp_gamemode");
+	cvDifficulty = FindConVar("z_difficulty");
+	cvGamemode = FindConVar("mp_gamemode");
 
-        cvDifficulty.AddChangeHook(OnDifficultyChange);
+	cvDifficulty.AddChangeHook(OnDifficultyChange);
 
-        HookEvent("player_activate", Event_PlayerActivate);
+	HookEvent("player_activate", Event_PlayerActivate);
 }
 
 public void OnMapStart() {
-        wasTooEasy = false;
+	wasTooEasy = false;
 
-        if (IsTooEasy()) {
-                MakeItHard();
-                wasTooEasy = true;
-        }
+	if (IsTooEasy()) {
+		MakeItHard();
+		wasTooEasy = true;
+	}
 }
